@@ -61,10 +61,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         require(_startDate < _endDate, 'Presale: startDate cannot be after endDate');
         require(_endDate > block.timestamp, 'Presale: endDate must be in the future');
         require(_minCommitment > 0, 'Presale: minCommitment must be higher than 0');
-        require(
-            _minCommitment < _maxCommitment,
-            'Presale: minCommitment cannot be higher than maxCommitment'
-        );
+        require(_minCommitment < _maxCommitment, 'Presale: minCommitment cannot be higher than maxCommitment');
 
         startDate = _startDate;
         endDate = _endDate;
@@ -87,10 +84,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         require(!isFinalized, 'Presale: sale finalized');
         uint256 amount = msg.value;
         require(amount >= minCommitment, 'Presale: amount too low');
-        require(
-            tokensPurchased[msg.sender].add(amount) <= maxCommitment,
-            'Presale: maxCommitment reached'
-        );
+        require(tokensPurchased[msg.sender].add(amount) <= maxCommitment, 'Presale: maxCommitment reached');
         require(tokensSold.add(amount) <= hardCap, 'Presale: hardcap reached');
 
         tokensSold = tokensSold.add(amount);
@@ -119,7 +113,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
 
     function addLiquidity(address lpOwner) private {
         require(isFinalized, 'Presale: must be finalized');
-        require(tokenOut != address(0), "Presale: tokenOut is not valid");
+        require(tokenOut != address(0), 'Presale: tokenOut is not valid');
         uint256 tokenLaunchAmount = tokensSold.mul(launchPrice).div(1e9);
         uint256 tokenPresaleAmount = tokensSold.mul(presalePrice).div(1e9);
         uint256 tokenRequiredAmount = tokenLaunchAmount.add(tokenPresaleAmount);

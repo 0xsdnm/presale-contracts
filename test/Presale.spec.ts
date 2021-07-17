@@ -94,9 +94,7 @@ describe('Presale', () => {
 
   describe('#setPresalePrice', () => {
     it('sets presalePrice correctly', async () => {
-      await expect(presale.setPresalePrice(0)).to.be.revertedWith(
-        'Presale: presalePrice must be positive'
-      )
+      await expect(presale.setPresalePrice(0)).to.be.revertedWith('Presale: presalePrice must be positive')
       await presale.setPresalePrice(100 * 1e9)
       expect(await presale.presalePrice()).to.eq(100 * 1e9)
     })
@@ -104,9 +102,7 @@ describe('Presale', () => {
 
   describe('#setLaunchPrice', () => {
     it('sets launchPrice correctly', async () => {
-      await expect(presale.setLaunchPrice(0)).to.be.revertedWith(
-        'Presale: launchPrice must be positive'
-      )
+      await expect(presale.setLaunchPrice(0)).to.be.revertedWith('Presale: launchPrice must be positive')
       await presale.setLaunchPrice(100 * 1e9)
       expect(await presale.launchPrice()).to.eq(100 * 1e9)
     })
@@ -152,7 +148,9 @@ describe('Presale', () => {
 
   describe('#setRouterAddress', () => {
     it('sets routerAddress correctly', async () => {
-      await expect(presale.setRouterAddress('0x0000000000000000000000000000000000000000')).to.be.revertedWith('Presale: invalid routerAddress')
+      await expect(presale.setRouterAddress('0x0000000000000000000000000000000000000000')).to.be.revertedWith(
+        'Presale: invalid routerAddress'
+      )
       await presale.setRouterAddress('0x000000000000000000000000000000000000dead')
       expect((await presale.routerAddress()).toLowerCase()).to.eq('0x000000000000000000000000000000000000dead')
     })
@@ -167,13 +165,9 @@ describe('Presale', () => {
     describe('#purchaseTokens', () => {
       it('coordinates the sale correctly', async () => {
         // Start date checks
-        await expect(presaleByAlice.purchaseTokens({ value: minCommitment })).to.be.revertedWith(
-          'Presale: too early!'
-        )
+        await expect(presaleByAlice.purchaseTokens({ value: minCommitment })).to.be.revertedWith('Presale: too early!')
         await provider.send('evm_setNextBlockTimestamp', [startDate])
-        await expect(presaleByAlice.purchaseTokens({ value: minCommitment })).to.be.revertedWith(
-          'Presale: too early!'
-        )
+        await expect(presaleByAlice.purchaseTokens({ value: minCommitment })).to.be.revertedWith('Presale: too early!')
 
         // Whitelist checks
         await provider.send('evm_setNextBlockTimestamp', [startDate + 1])
@@ -231,18 +225,18 @@ describe('Presale', () => {
         )
         expect(await presale.tokensPurchased(david.address)).to.eq(0)
         await provider.send('evm_setNextBlockTimestamp', [endDate + 1])
-        await expect(presaleByDavid.purchaseTokens({ value: minCommitment })).to.be.revertedWith(
-          'Presale: too late!'
-        )
+        await expect(presaleByDavid.purchaseTokens({ value: minCommitment })).to.be.revertedWith('Presale: too late!')
         expect(await presale.tokensPurchased(david.address)).to.eq(0)
         expect(await sampleERC20.balanceOf(david.address)).to.eq(0)
-        await router.connect(david).swapExactETHForTokensSupportingFeeOnTransferTokens(
-          0,
-          [WETHAddress, sampleERC20.address],
-          david.address,
-          currentTimestamp + 3600,
-          { value: ethers.utils.parseEther('1') }
-        )
+        await router
+          .connect(david)
+          .swapExactETHForTokensSupportingFeeOnTransferTokens(
+            0,
+            [WETHAddress, sampleERC20.address],
+            david.address,
+            currentTimestamp + 3600,
+            { value: ethers.utils.parseEther('1') }
+          )
         expect(await sampleERC20.balanceOf(david.address)).to.be.eq(102636655948553)
       })
 
@@ -372,16 +366,12 @@ describe('Presale', () => {
         await expect(presaleByBob.releaseTokens()).to.be.revertedWith('Presale: endDate not passed')
         await expect(presaleByCarol.releaseTokens()).to.be.revertedWith('Presale: endDate not passed')
 
-        await expect(presale.finalizeSale()).to.be.revertedWith(
-          'Presale: endDate not passed or hardcap not reached'
-        )
+        await expect(presale.finalizeSale()).to.be.revertedWith('Presale: endDate not passed or hardcap not reached')
         expect(await presale.isFinalized()).to.be.false
         await provider.send('evm_setNextBlockTimestamp', [endDate + 1])
         await expect(presaleByAlice.releaseTokens()).to.be.revertedWith('Presale: softCap reached')
         await expect(presaleByBob.releaseTokens()).to.be.revertedWith('Presale: softCap reached')
-        await expect(presaleByCarol.releaseTokens()).to.be.revertedWith(
-          'Presale: no tokens to release'
-        )
+        await expect(presaleByCarol.releaseTokens()).to.be.revertedWith('Presale: no tokens to release')
 
         await presale.finalizeSale()
         expect(await presale.isFinalized()).to.be.true
@@ -408,23 +398,27 @@ describe('Presale', () => {
         expect(await sampleERC20.balanceOf(carol.address)).to.eq(maxClaimableAmount)
         expect(await sampleERC20.balanceOf(david.address)).to.eq(0)
 
-        await router.connect(david).swapExactETHForTokensSupportingFeeOnTransferTokens(
-          0,
-          [WETHAddress, sampleERC20.address],
-          david.address,
-          currentTimestamp + 3600,
-          { value: ethers.utils.parseEther('1') }
-        )
+        await router
+          .connect(david)
+          .swapExactETHForTokensSupportingFeeOnTransferTokens(
+            0,
+            [WETHAddress, sampleERC20.address],
+            david.address,
+            currentTimestamp + 3600,
+            { value: ethers.utils.parseEther('1') }
+          )
         expect(await sampleERC20.balanceOf(david.address)).to.be.eq(102636655948553)
         const carolCurrentETHBalance = await provider.getBalance(carol.address)
-        await(sampleERC20.connect(carol).approve(routerAddress, maxClaimableAmount))
-        await router.connect(carol).swapExactTokensForETHSupportingFeeOnTransferTokens(
-          maxClaimableAmount,
-          0,
-          [sampleERC20.address, WETHAddress],
-          carol.address,
-          currentTimestamp + 3600,
-        )
+        await sampleERC20.connect(carol).approve(routerAddress, maxClaimableAmount)
+        await router
+          .connect(carol)
+          .swapExactTokensForETHSupportingFeeOnTransferTokens(
+            maxClaimableAmount,
+            0,
+            [sampleERC20.address, WETHAddress],
+            carol.address,
+            currentTimestamp + 3600
+          )
         expect(await sampleERC20.balanceOf(carol.address)).to.eq(0)
         expect(await provider.getBalance(carol.address)).to.be.above(carolCurrentETHBalance)
       })
@@ -450,23 +444,31 @@ describe('Presale', () => {
         expect(await sampleERC20.balanceOf(carol.address)).to.eq(maxClaimableAmount)
         expect(await sampleERC20.balanceOf(david.address)).to.eq(0)
 
-        await expect(router.connect(david).swapExactETHForTokensSupportingFeeOnTransferTokens(
-          0,
-          [WETHAddress, sampleERC20.address],
-          david.address,
-          currentTimestamp + 3600,
-          { value: ethers.utils.parseEther('1') }
-        )).to.be.revertedWith('')
+        await expect(
+          router
+            .connect(david)
+            .swapExactETHForTokensSupportingFeeOnTransferTokens(
+              0,
+              [WETHAddress, sampleERC20.address],
+              david.address,
+              currentTimestamp + 3600,
+              { value: ethers.utils.parseEther('1') }
+            )
+        ).to.be.revertedWith('')
         expect(await sampleERC20.balanceOf(david.address)).to.be.eq(0)
         const carolCurrentETHBalance = await provider.getBalance(carol.address)
-        await(sampleERC20.connect(carol).approve(routerAddress, maxClaimableAmount))
-        await expect(router.connect(carol).swapExactTokensForETHSupportingFeeOnTransferTokens(
-          maxClaimableAmount,
-          0,
-          [sampleERC20.address, WETHAddress],
-          carol.address,
-          currentTimestamp + 3600,
-        )).to.be.revertedWith('')
+        await sampleERC20.connect(carol).approve(routerAddress, maxClaimableAmount)
+        await expect(
+          router
+            .connect(carol)
+            .swapExactTokensForETHSupportingFeeOnTransferTokens(
+              maxClaimableAmount,
+              0,
+              [sampleERC20.address, WETHAddress],
+              carol.address,
+              currentTimestamp + 3600
+            )
+        ).to.be.revertedWith('')
         expect(await sampleERC20.balanceOf(carol.address)).to.eq(maxClaimableAmount)
         expect(await provider.getBalance(carol.address)).to.be.below(carolCurrentETHBalance) // because of tx fee
       })
@@ -497,9 +499,7 @@ describe('Presale', () => {
         await presaleByAlice.releaseTokens()
         await presaleByBob.releaseTokens()
         await presaleByCarol.releaseTokens()
-        await expect(presaleByDavid.releaseTokens()).to.be.revertedWith(
-          'Presale: no tokens to release'
-        )
+        await expect(presaleByDavid.releaseTokens()).to.be.revertedWith('Presale: no tokens to release')
 
         expect(await provider.getBalance(alice.address)).to.be.above(aliceBalanceAfterPurchase)
         expect(await provider.getBalance(bob.address)).to.be.above(bobBalanceAfterPurchase)
