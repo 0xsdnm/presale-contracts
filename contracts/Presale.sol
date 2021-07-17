@@ -168,6 +168,11 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         addLiquidityEnabled = _enabled;
     }
 
+    function setRouterAddress(address _routerAddress) external onlyOwner {
+        require(_routerAddress != address(0), 'Presale: invalid routerAddress');
+        routerAddress = _routerAddress;
+    }
+
     /**
      * @dev let investors claim their purchased tokens
      *

@@ -150,6 +150,14 @@ describe('Presale', () => {
     })
   })
 
+  describe('#setRouterAddress', () => {
+    it('sets routerAddress correctly', async () => {
+      await expect(presale.setRouterAddress('0x0000000000000000000000000000000000000000')).to.be.revertedWith('Presale: invalid routerAddress')
+      await presale.setRouterAddress('0x000000000000000000000000000000000000dead')
+      expect((await presale.routerAddress()).toLowerCase()).to.eq('0x000000000000000000000000000000000000dead')
+    })
+  })
+
   describe('Sale actions', () => {
     beforeEach(async () => {
       sampleERC20 = await deploySampleERC20(owner)
