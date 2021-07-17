@@ -96,7 +96,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
      * @dev finalize sale if minRaise is reached
      *
      */
-    function finalizeSale() external onlyOwner nonReentrant {
+    function finalizeSale() external onlyOwner {
         require(!isFinalized, 'Presale: already finalized');
         require(
             block.timestamp > endDate || tokensSold == hardCap,
@@ -171,7 +171,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
      * @dev let investors claim their purchased tokens
      *
      */
-    function claimTokens() external {
+    function claimTokens() external nonReentrant {
         require(isFinalized, 'Presale: sale not finalized');
         require(tokensPurchased[msg.sender] > 0, 'Presale: no tokens to claim');
         uint256 purchasedTokens = tokensPurchased[msg.sender].mul(presalePrice).div(1e9);
