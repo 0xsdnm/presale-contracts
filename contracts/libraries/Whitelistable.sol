@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+
+pragma solidity 0.8.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 contract Whitelistable is Ownable {
-    mapping(address => bool) public preSaleWhitelist;
-    bool public whitelistEnabled = true;
+    mapping(address => bool) public whitelisted;
+    bool public isWhitelistEnabled = true;
 
     /**
      * @dev Restrict access based on whitelist.
      *
      */
     modifier onlyWhitelist() {
-        if (whitelistEnabled) {
-            require(isWhitelisted(_msgSender()), "Whitelistable: You're not on the whitelist.");
+        if (isWhitelistEnabled) {
+            require(whitelisted[_msgSender()], "Whitelistable: You're not on the whitelist.");
         }
         _;
     }
@@ -24,7 +25,7 @@ contract Whitelistable is Ownable {
      */
     function addToWhitelist(address[] memory asses) external onlyOwner {
         for (uint256 i = 0; i < asses.length; i++) {
-            preSaleWhitelist[asses[i]] = true;
+            whitelisted[asses[i]] = true;
         }
     }
 
@@ -34,16 +35,16 @@ contract Whitelistable is Ownable {
      */
     function removeFromWhitelist(address[] memory asses) external onlyOwner {
         for (uint256 i = 0; i < asses.length; i++) {
-            preSaleWhitelist[asses[i]] = false;
+            whitelisted[asses[i]] = false;
         }
     }
 
     /**
-     * @dev set whitelistEnabled.
+     * @dev set isWhitelistEnabled.
      *
      */
-    function setWhitelistEnabled(bool _isEnabled) external onlyOwner {
-        whitelistEnabled = _isEnabled;
+    function setIsWhitelistEnabled(bool _enabled) external onlyOwner {
+        isWhitelistEnabled = _enabled;
     }
 
     /**
@@ -51,14 +52,6 @@ contract Whitelistable is Ownable {
      * coming from the frontend.
      */
     function isOnWhitelist() public view returns (bool) {
-        return isWhitelisted(_msgSender());
-    }
-
-    /**
-     * @dev Internal function for whitelist checks.
-     *
-     */
-    function isWhitelisted(address _address) internal view returns (bool) {
-        return preSaleWhitelist[_address];
+        return whitelisted[_msgSender()];
     }
 }

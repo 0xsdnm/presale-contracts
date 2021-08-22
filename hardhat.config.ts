@@ -5,7 +5,8 @@ import '@typechain/hardhat'
 import 'hardhat-abi-exporter'
 import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-gas-reporter'
-import 'hardhat-deploy';
+import 'hardhat-deploy'
+import 'hardhat-deploy-ethers'
 
 const OWNER_PRIVATE_KEY = process.env.OWNER_PRIVATE_KEY || ''
 const BLOCK_EXPLORER_API_KEY = process.env.BLOCK_EXPLORER_API_KEY || ''
@@ -15,16 +16,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.6',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 999999,
-          }
-        },
-      },
-      {
-        version: '0.7.6',
+        version: '0.8.7',
         settings: {
           optimizer: {
             enabled: true,
@@ -36,9 +28,10 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
+      saveDeployments: true,
       forking: {
-        url: "https://bsc-dataseed.binance.org",
-      }
+        url: 'https://bsc-dataseed.binance.org',
+      },
     },
     bscTestnet: {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545',

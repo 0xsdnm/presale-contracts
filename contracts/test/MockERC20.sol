@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+
+pragma solidity 0.8.7;
 
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
-contract SampleERC20 is ERC20('SampleERC20', 'SE') {
+contract MockERC20 is ERC20('MockERC20', 'MERC20') {
     uint8 _decimals;
 
-    constructor(uint8 decimals_, uint256 _totalSupply) public {
+    constructor(uint8 decimals_, uint256 _totalSupply) {
         _decimals = decimals_;
         _mint(msg.sender, _totalSupply);
     }

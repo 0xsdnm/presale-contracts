@@ -46,31 +46,25 @@
   },
   {
     "inputs": [],
-    "name": "owner",
+    "name": "isWhitelistEnabled",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "bool",
         "name": "",
-        "type": "address"
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
       {
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "name": "preSaleWhitelist",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -100,11 +94,11 @@
     "inputs": [
       {
         "internalType": "bool",
-        "name": "_isEnabled",
+        "name": "_enabled",
         "type": "bool"
       }
     ],
-    "name": "setWhitelistEnabled",
+    "name": "setIsWhitelistEnabled",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -123,8 +117,14 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "whitelistEnabled",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "whitelisted",
     "outputs": [
       {
         "internalType": "bool",

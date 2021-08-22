@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+
+pragma solidity 0.8.7;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
@@ -7,7 +8,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './libraries/TransferHelper.sol';
 import './libraries/Whitelistable.sol';
-import './interfaces/IPancakeRouter02.sol';
+import './interfaces/IDEXRouter.sol';
 
 contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -28,9 +29,9 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     uint256 public hardCap;
     uint256 public tokensSold;
     uint256 public tokensForLiquidity;
-    address public routerAddress;
+    address public router;
     bool public isFinalized;
-    bool public addLiquidityEnabled;
+    bool public isAddLiquidityEnabled;
     address public tokenContract;
 
     mapping(address => uint256) public tokensPurchased;
@@ -55,8 +56,9 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         address _tokenOut,
         uint256 _presalePrice,
         uint256 _launchPrice,
-        address _routerAddress
-    ) public {
+        address _router,
+        bool _isAddLiquidityEnabled
+    ) {
         require(_softCap < _hardCap, 'Presale: softCap cannot be higher than hardCap');
         require(_startDate < _endDate, 'Presale: startDate cannot be after endDate');
         require(_endDate > block.timestamp, 'Presale: endDate must be in the future');
@@ -72,8 +74,8 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         tokenOut = _tokenOut;
         presalePrice = _presalePrice;
         launchPrice = _launchPrice;
-        routerAddress = _routerAddress;
-        addLiquidityEnabled = true;
+        router = _router;
+        isAddLiquidityEnabled = _isAddLiquidityEnabled;
     }
 
     /**
@@ -104,7 +106,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         );
         require(tokensSold >= softCap, 'Presale: softCap not reached');
         isFinalized = true;
-        if (addLiquidityEnabled) {
+        if (isAddLiquidityEnabled) {
             addLiquidity(_msgSender());
         }
 
@@ -122,9 +124,8 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         require(tokenRequiredAmount <= tokenBalance, 'Presale: not enough token balance');
         require(tokensSold <= address(this).balance, 'Presale: not enough balance');
 
-        IPancakeRouter02 pancakeRouter = IPancakeRouter02(routerAddress);
-        IERC20(tokenOut).approve(routerAddress, tokenLaunchAmount);
-        pancakeRouter.addLiquidityETH{value: tokensSold}(
+        IERC20(tokenOut).approve(router, tokenLaunchAmount);
+        IDEXRouter(router).addLiquidityETH{value: tokensSold}(
             tokenOut,
             tokenLaunchAmount,
             0, // slippage is unavoidable
@@ -158,13 +159,13 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         endDate = _endDate;
     }
 
-    function setAddLiquidityEnabled(bool _enabled) external onlyOwner {
-        addLiquidityEnabled = _enabled;
+    function setIsAddLiquidityEnabled(bool _enabled) external onlyOwner {
+        isAddLiquidityEnabled = _enabled;
     }
 
-    function setRouterAddress(address _routerAddress) external onlyOwner {
-        require(_routerAddress != address(0), 'Presale: invalid routerAddress');
-        routerAddress = _routerAddress;
+    function setRouter(address _router) external onlyOwner {
+        require(_router != address(0), 'Presale: invalid router');
+        router = _router;
     }
 
     /**

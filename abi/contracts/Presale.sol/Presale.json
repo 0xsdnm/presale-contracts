@@ -48,8 +48,13 @@
       },
       {
         "internalType": "address",
-        "name": "_routerAddress",
+        "name": "_router",
         "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "_isAddLiquidityEnabled",
+        "type": "bool"
       }
     ],
     "stateMutability": "nonpayable",
@@ -136,19 +141,6 @@
     ],
     "name": "TokensReleased",
     "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "addLiquidityEnabled",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "inputs": [
@@ -244,6 +236,19 @@
   },
   {
     "inputs": [],
+    "name": "isAddLiquidityEnabled",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "isFinalized",
     "outputs": [
       {
@@ -258,6 +263,19 @@
   {
     "inputs": [],
     "name": "isOnWhitelist",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isWhitelistEnabled",
     "outputs": [
       {
         "internalType": "bool",
@@ -321,25 +339,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "preSaleWhitelist",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "presalePrice",
     "outputs": [
@@ -388,7 +387,7 @@
   },
   {
     "inputs": [],
-    "name": "routerAddress",
+    "name": "router",
     "outputs": [
       {
         "internalType": "address",
@@ -402,12 +401,12 @@
   {
     "inputs": [
       {
-        "internalType": "bool",
-        "name": "_enabled",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "_endDate",
+        "type": "uint256"
       }
     ],
-    "name": "setAddLiquidityEnabled",
+    "name": "setEndDate",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -415,12 +414,25 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_endDate",
-        "type": "uint256"
+        "internalType": "bool",
+        "name": "_enabled",
+        "type": "bool"
       }
     ],
-    "name": "setEndDate",
+    "name": "setIsAddLiquidityEnabled",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_enabled",
+        "type": "bool"
+      }
+    ],
+    "name": "setIsWhitelistEnabled",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -455,11 +467,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_routerAddress",
+        "name": "_router",
         "type": "address"
       }
     ],
-    "name": "setRouterAddress",
+    "name": "setRouter",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -486,19 +498,6 @@
       }
     ],
     "name": "setTokenOut",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bool",
-        "name": "_isEnabled",
-        "type": "bool"
-      }
-    ],
-    "name": "setWhitelistEnabled",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -627,8 +626,14 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "whitelistEnabled",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "whitelisted",
     "outputs": [
       {
         "internalType": "bool",
