@@ -18,6 +18,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const presalePrice = 180e3
   const launchPrice = 180e3
   const routerAddress = '0x0000000000000000000000000000000000000000'
+  const isAddLiquidityEnabled = false
 
   await deploy('Presale', {
     from: deployer,
@@ -32,10 +33,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       presalePrice,
       launchPrice,
       routerAddress,
+      isAddLiquidityEnabled,
     ],
     log: true,
   })
 }
 
 export default func
-func.tags = ['Sale', 'Testnet']
+func.tags = ['testnet']

@@ -18,6 +18,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const presalePrice = 100e3 // 1 BNB = 100,000 ERC20 tokens
   const launchPrice = 100e3 // 1 BNB = 100,000 ERC20 tokens
   const routerAddress = '0x10ed43c718714eb63d5aa57b78b54704e256024e' // PancakeRouterV2
+  const isAddLiquidityEnabled = false
 
   await deploy('Presale', {
     from: deployer,
@@ -32,10 +33,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       presalePrice,
       launchPrice,
       routerAddress,
+      isAddLiquidityEnabled,
     ],
     log: true,
   })
 }
 
 export default func
-func.tags = ['Sale', 'Mainnet']
+func.tags = ['mainnet']

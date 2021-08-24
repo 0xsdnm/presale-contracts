@@ -30,11 +30,11 @@ const config: HardhatUserConfig = {
     hardhat: {
       saveDeployments: true,
       forking: {
-        url: 'https://bsc-dataseed.binance.org',
+        url: 'https://speedy-nodes-nyc.moralis.io/364169c3e55223152d6fd977/bsc/mainnet/archive',
       },
     },
     bscTestnet: {
-      url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
+      url: 'https://speedy-nodes-nyc.moralis.io/364169c3e55223152d6fd977/bsc/testnet',
       chainId: 97,
       accounts: [OWNER_PRIVATE_KEY],
     },

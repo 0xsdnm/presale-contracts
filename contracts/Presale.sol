@@ -9,6 +9,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './libraries/TransferHelper.sol';
 import './libraries/Whitelistable.sol';
 import './interfaces/IDEXRouter.sol';
+import "hardhat/console.sol";
 
 contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -28,11 +29,13 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     uint256 public softCap;
     uint256 public hardCap;
     uint256 public tokensSold;
-    uint256 public tokensForLiquidity;
     address public router;
     bool public isFinalized;
     bool public isAddLiquidityEnabled;
     address public tokenContract;
+
+    uint256 public fee;
+    address public feeAddress;
 
     mapping(address => uint256) public tokensPurchased;
 
@@ -57,7 +60,8 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         uint256 _presalePrice,
         uint256 _launchPrice,
         address _router,
-        bool _isAddLiquidityEnabled
+        uint256 _fee,
+        address _feeAddress
     ) {
         require(_softCap < _hardCap, 'Presale: softCap cannot be higher than hardCap');
         require(_startDate < _endDate, 'Presale: startDate cannot be after endDate');
@@ -75,7 +79,8 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         presalePrice = _presalePrice;
         launchPrice = _launchPrice;
         router = _router;
-        isAddLiquidityEnabled = _isAddLiquidityEnabled;
+        fee = _fee;
+        feeAddress = _feeAddress;
     }
 
     /**
@@ -85,8 +90,9 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     function purchaseTokens() external payable isActive onlyWhitelist {
         require(!isFinalized, 'Presale: sale finalized');
         uint256 amount = msg.value;
-        require(amount >= minCommitment, 'Presale: amount too low');
-        require(tokensPurchased[msg.sender].add(amount) <= maxCommitment, 'Presale: maxCommitment reached');
+        uint256 _tokenPurchased = tokensPurchased[msg.sender].add(amount);
+        require(_tokenPurchased >= minCommitment, 'Presale: amount too low');
+        require(_tokenPurchased <= maxCommitment, 'Presale: maxCommitment reached');
         require(tokensSold.add(amount) <= hardCap, 'Presale: hardcap reached');
 
         tokensSold = tokensSold.add(amount);
@@ -120,6 +126,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         uint256 tokenPresaleAmount = tokensSold.mul(presalePrice).div(1e9);
         uint256 tokenRequiredAmount = tokenLaunchAmount.add(tokenPresaleAmount);
         uint256 tokenBalance = IERC20(tokenOut).balanceOf(address(this));
+        console.log(tokenBalance);
         require(tokenBalance > 0, 'Presale: token balance must be positive');
         require(tokenRequiredAmount <= tokenBalance, 'Presale: not enough token balance');
         require(tokensSold <= address(this).balance, 'Presale: not enough balance');
@@ -239,7 +246,30 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
      *
      */
     function withdrawBnb() external onlyOwner {
-        payable(_msgSender()).transfer(address(this).balance);
+        uint256 bal = address(this).balance;
+        bal = bal > fee ? bal.sub(fee) : 0;
+
+        if (bal > 0) {
+            payable(_msgSender()).transfer(address(this).balance.sub(fee));
+        }
+    }
+
+    /**
+     * @dev Pay launchpad fee.
+     *
+     */
+    function payFee() external nonReentrant {
+        require(feeAddress != address(0));
+        require(fee > 0, 'Presale: Invalid fee amount');
+
+        uint256 bal = address(this).balance;
+        if (fee > bal) {
+            fee = fee.sub(bal);
+            payable(feeAddress).transfer(bal);
+        } else {
+            payable(feeAddress).transfer(fee);
+            fee = 0;
+        }
     }
 
     /**
