@@ -85,8 +85,10 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     function purchaseTokens() external payable isActive onlyWhitelist {
         require(!isFinalized, 'Presale: sale finalized');
         uint256 amount = msg.value;
-        require(amount >= minCommitment, 'Presale: amount too low');
-        require(tokensPurchased[msg.sender].add(amount) <= maxCommitment, 'Presale: maxCommitment reached');
+        require(amount > 0, 'Presale: amount too low');
+        uint256 _tokenPurchased = tokensPurchased[msg.sender].add(amount);
+        require(_tokenPurchased >= minCommitment, 'Presale: amount too low');
+        require(_tokenPurchased <= maxCommitment, 'Presale: maxCommitment reached');
         require(tokensSold.add(amount) <= hardCap, 'Presale: hardcap reached');
 
         tokensSold = tokensSold.add(amount);

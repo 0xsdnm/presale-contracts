@@ -1,5 +1,6 @@
 import hre, { ethers, waffle } from 'hardhat'
 const { BigNumber, Contract } = ethers
+const { parseEther, parseUnits } = ethers.utils
 const { deployContract } = waffle
 import { expect } from './chai-setup'
 import { Presale } from '../typechain'
@@ -22,10 +23,10 @@ describe('Presale', () => {
   let currentTimestamp: number
   let startDate: number
   let endDate: number
-  const minCommitment = ethers.utils.parseEther('0.1')
-  const maxCommitment = ethers.utils.parseEther('2')
-  const softCap = ethers.utils.parseEther('3')
-  const hardCap = ethers.utils.parseEther('6')
+  const minCommitment = parseEther('0.1')
+  const maxCommitment = parseEther('2')
+  const softCap = parseEther('3')
+  const hardCap = parseEther('6')
   const tokenOut = '0x0000000000000000000000000000000000000000'
   const presalePrice = '180000'
   const launchPrice = '120000'
@@ -169,6 +170,9 @@ describe('Presale', () => {
 
         // min/max commitment checks
         await presale.addToWhitelist([alice.address])
+        await expect(presale.connect(alice).purchaseTokens({ value: 0 })).to.be.revertedWith(
+          'Presale: amount too low'
+        )
         await expect(presale.connect(alice).purchaseTokens({ value: minCommitment.sub(1) })).to.be.revertedWith(
           'Presale: amount too low'
         )
@@ -176,18 +180,20 @@ describe('Presale', () => {
           'Presale: maxCommitment reached'
         )
         await presale.connect(alice).purchaseTokens({ value: minCommitment })
-        expect(await presale.tokensSold()).to.eq(minCommitment)
-        expect(await presale.tokensPurchased(alice.address)).to.eq(minCommitment)
-        expect(await presale.connect(alice).tokensRemaining()).to.eq(ethers.utils.parseUnits('1062000', 9))
-        expect(await presale.connect(alice).bnbRemaining()).to.eq(ethers.utils.parseEther('5.9'))
-        expect(await presale.connect(alice).getReservedTokens()).to.eq(ethers.utils.parseUnits('18000', 9))
+        await presale.connect(alice).purchaseTokens({ value: parseEther('0.05') })
+        const tokenSoldToAlice = minCommitment.add(parseEther('0.05'))
+        expect(await presale.tokensSold()).to.eq(tokenSoldToAlice)
+        expect(await presale.tokensPurchased(alice.address)).to.eq(tokenSoldToAlice)
+        expect(await presale.connect(alice).tokensRemaining()).to.eq(parseUnits('1053000', 9))
+        expect(await presale.connect(alice).bnbRemaining()).to.eq(parseEther('5.85'))
+        expect(await presale.connect(alice).getReservedTokens()).to.eq(parseUnits('27000', 9))
 
-        await presale.connect(alice).purchaseTokens({ value: maxCommitment.sub(minCommitment) })
+        await presale.connect(alice).purchaseTokens({ value: maxCommitment.sub(tokenSoldToAlice) })
         expect(await presale.tokensPurchased(alice.address)).to.eq(maxCommitment)
         expect(await presale.tokensSold()).to.eq(maxCommitment)
-        expect(await presale.connect(alice).tokensRemaining()).to.eq(ethers.utils.parseUnits('720000', 9))
-        expect(await presale.connect(alice).bnbRemaining()).to.eq(ethers.utils.parseEther('4'))
-        expect(await presale.connect(alice).getReservedTokens()).to.eq(ethers.utils.parseUnits('360000', 9))
+        expect(await presale.connect(alice).tokensRemaining()).to.eq(parseUnits('720000', 9))
+        expect(await presale.connect(alice).bnbRemaining()).to.eq(parseEther('4'))
+        expect(await presale.connect(alice).getReservedTokens()).to.eq(parseUnits('360000', 9))
 
         expect(await presale.tokensPurchased(alice.address)).to.eq(maxCommitment)
         await expect(presale.connect(alice).purchaseTokens({ value: minCommitment })).to.be.revertedWith(
@@ -197,8 +203,8 @@ describe('Presale', () => {
         // hardhap reached checks
         await presale.addToWhitelist([bob.address, carol.address, david.address])
         await presale.connect(bob).purchaseTokens({ value: maxCommitment })
-        expect(await presale.tokensRemaining()).to.eq(ethers.utils.parseUnits('360000', 9))
-        expect(await presale.bnbRemaining()).to.eq(ethers.utils.parseEther('2'))
+        expect(await presale.tokensRemaining()).to.eq(parseUnits('360000', 9))
+        expect(await presale.bnbRemaining()).to.eq(parseEther('2'))
         expect(await presale.tokensPurchased(bob.address)).to.eq(maxCommitment)
         await presale.connect(carol).purchaseTokens({ value: maxCommitment })
         expect(await presale.tokensPurchased(carol.address)).to.eq(maxCommitment)
@@ -208,8 +214,8 @@ describe('Presale', () => {
         expect(await presale.tokensPurchased(david.address)).to.eq(0)
         await expect(presale.finalizeSale()).to.be.revertedWith('Presale: token balance must be positive')
         // transfer ERC20 token to presale
-        const presaleAmount = ethers.utils.parseUnits(presalePrice, 9).mul(6)
-        const launchAmount = ethers.utils.parseUnits(launchPrice, 9).mul(6)
+        const presaleAmount = parseUnits(presalePrice, 9).mul(6)
+        const launchAmount = parseUnits(launchPrice, 9).mul(6)
         await mockERC20.transfer(presale.address, presaleAmount.add(launchAmount))
         await presale.finalizeSale()
         await expect(presale.connect(david).purchaseTokens({ value: maxCommitment })).to.be.revertedWith(
@@ -229,7 +235,7 @@ describe('Presale', () => {
             [WETHAddress, mockERC20.address],
             david.address,
             currentTimestamp + 3600,
-            { value: ethers.utils.parseEther('1') }
+            { value: parseEther('1') }
           )
         expect(await mockERC20.balanceOf(david.address)).to.be.eq(102636655948553)
       })
@@ -267,9 +273,9 @@ describe('Presale', () => {
       it('transfers BNB balance to the owner wallet', async () => {
         await provider.send('evm_setNextBlockTimestamp', [startDate + 1])
         await presale.addToWhitelist([alice.address, bob.address])
-        await presale.connect(alice).purchaseTokens({ value: ethers.utils.parseEther('1') })
-        await presale.connect(bob).purchaseTokens({ value: ethers.utils.parseEther('0.5') })
-        expect(await provider.getBalance(presale.address)).to.eq(ethers.utils.parseEther('1.5'))
+        await presale.connect(alice).purchaseTokens({ value: parseEther('1') })
+        await presale.connect(bob).purchaseTokens({ value: parseEther('0.5') })
+        expect(await provider.getBalance(presale.address)).to.eq(parseEther('1.5'))
         const oldOwnerBalance = await provider.getBalance(owner.address)
         await presale.withdrawBnb()
         expect(await provider.getBalance(presale.address)).to.eq(0)
@@ -282,14 +288,14 @@ describe('Presale', () => {
         const ownerERC20Balance = await mockERC20.balanceOf(owner.address)
         expect(ownerERC20Balance).to.be.above(0)
         // transfer ERC20 token to presale
-        const transferAmount = ethers.utils.parseUnits(presalePrice, 9).mul(6)
+        const transferAmount = parseUnits(presalePrice, 9).mul(6)
         await mockERC20.transfer(presale.address, transferAmount)
         expect(await mockERC20.balanceOf(presale.address)).to.eq(transferAmount)
         expect(await mockERC20.balanceOf(owner.address)).to.be.below(ownerERC20Balance)
 
-        const withdrawAmount = ethers.utils.parseUnits(presalePrice, 9).mul(2)
+        const withdrawAmount = parseUnits(presalePrice, 9).mul(2)
         await presale.withdrawErc20Token(mockERC20.address, alice.address, withdrawAmount)
-        expect(await mockERC20.balanceOf(presale.address)).to.eq(ethers.utils.parseUnits(presalePrice, 9).mul(4))
+        expect(await mockERC20.balanceOf(presale.address)).to.eq(parseUnits(presalePrice, 9).mul(4))
         expect(await mockERC20.balanceOf(alice.address)).to.eq(withdrawAmount)
       })
     })
@@ -297,8 +303,8 @@ describe('Presale', () => {
     describe('sale finalized succesfully', () => {
       beforeEach(async () => {
         // transfer ERC20 token to presale
-        const presaleAmount = ethers.utils.parseUnits(presalePrice, 9).mul(6)
-        const launchAmount = ethers.utils.parseUnits(launchPrice, 9).mul(6)
+        const presaleAmount = parseUnits(presalePrice, 9).mul(6)
+        const launchAmount = parseUnits(launchPrice, 9).mul(6)
         await mockERC20.transfer(presale.address, presaleAmount.add(launchAmount))
         // start private sale
         await presale.addToWhitelist([alice.address, bob.address, carol.address, david.address])
@@ -342,7 +348,7 @@ describe('Presale', () => {
         await presale.connect(bob).claimTokens()
         await presale.connect(carol).claimTokens()
         await expect(presale.connect(david).claimTokens()).to.be.revertedWith('Presale: no tokens to claim')
-        const maxClaimableAmount = ethers.utils.parseUnits('360000', 9)
+        const maxClaimableAmount = parseUnits('360000', 9)
         expect(await mockERC20.balanceOf(alice.address)).to.eq(maxClaimableAmount)
         expect(await mockERC20.balanceOf(bob.address)).to.eq(maxClaimableAmount)
         expect(await mockERC20.balanceOf(carol.address)).to.eq(maxClaimableAmount)
@@ -353,7 +359,7 @@ describe('Presale', () => {
         await provider.send('evm_setNextBlockTimestamp', [startDate + 1])
         await presale.connect(alice).purchaseTokens({ value: maxCommitment })
         await presale.connect(bob).purchaseTokens({ value: maxCommitment })
-        expect(await presale.connect(alice).bnbRemaining()).to.eq(ethers.utils.parseEther('2'))
+        expect(await presale.connect(alice).bnbRemaining()).to.eq(parseEther('2'))
 
         // refund tokens unsuccessfully
         await expect(presale.connect(alice).releaseTokens()).to.be.revertedWith('Presale: endDate not passed')
@@ -386,7 +392,7 @@ describe('Presale', () => {
         await presale.connect(bob).claimTokens()
         await presale.connect(carol).claimTokens()
         await expect(presale.connect(david).claimTokens()).to.be.revertedWith('Presale: no tokens to claim')
-        const maxClaimableAmount = ethers.utils.parseUnits('360000', 9)
+        const maxClaimableAmount = parseUnits('360000', 9)
         expect(await mockERC20.balanceOf(alice.address)).to.eq(maxClaimableAmount)
         expect(await mockERC20.balanceOf(bob.address)).to.eq(maxClaimableAmount)
         expect(await mockERC20.balanceOf(carol.address)).to.eq(maxClaimableAmount)
@@ -399,7 +405,7 @@ describe('Presale', () => {
             [WETHAddress, mockERC20.address],
             david.address,
             currentTimestamp + 3600,
-            { value: ethers.utils.parseEther('1') }
+            { value: parseEther('1') }
           )
         expect(await mockERC20.balanceOf(david.address)).to.be.eq(102636655948553)
         const carolCurrentETHBalance = await provider.getBalance(carol.address)
@@ -432,7 +438,7 @@ describe('Presale', () => {
         await presale.connect(bob).claimTokens()
         await presale.connect(carol).claimTokens()
         await expect(presale.connect(david).claimTokens()).to.be.revertedWith('Presale: no tokens to claim')
-        const maxClaimableAmount = ethers.utils.parseUnits('360000', 9)
+        const maxClaimableAmount = parseUnits('360000', 9)
         expect(await mockERC20.balanceOf(alice.address)).to.eq(maxClaimableAmount)
         expect(await mockERC20.balanceOf(bob.address)).to.eq(maxClaimableAmount)
         expect(await mockERC20.balanceOf(carol.address)).to.eq(maxClaimableAmount)
@@ -446,7 +452,7 @@ describe('Presale', () => {
               [WETHAddress, mockERC20.address],
               david.address,
               currentTimestamp + 3600,
-              { value: ethers.utils.parseEther('1') }
+              { value: parseEther('1') }
             )
         ).to.be.revertedWith('')
         expect(await mockERC20.balanceOf(david.address)).to.be.eq(0)
@@ -471,7 +477,7 @@ describe('Presale', () => {
     describe('sale failed', () => {
       beforeEach(async () => {
         // transfer ERC20 token to presale
-        const transferAmount = ethers.utils.parseUnits(presalePrice, 9).mul(6)
+        const transferAmount = parseUnits(presalePrice, 9).mul(6)
         await mockERC20.transfer(presale.address, transferAmount)
         // start private sale
         await presale.addToWhitelist([alice.address, bob.address, carol.address, david.address])
@@ -508,6 +514,6 @@ describe('Presale', () => {
 const deployMockERC20 = async (owner: SignerWithAddress) => {
   return (await deployContract(owner, MockERC20Artifact, [
     9,
-    ethers.utils.parseUnits('1000000000000', 9), // 1T
+    parseUnits('1000000000000', 9), // 1T
   ])) as MockERC20
 }
