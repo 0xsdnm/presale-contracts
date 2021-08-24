@@ -66,7 +66,6 @@ describe('Presale', () => {
       expect((await presale.tokenOut()).valueOf()).to.eq(tokenOut)
       expect((await presale.presalePrice()).valueOf()).to.eq(presalePrice)
       expect((await presale.launchPrice()).valueOf()).to.eq(launchPrice)
-      expect((await presale.router()).toLowerCase()).to.eq(routerAddress)
       expect(await presale.isWhitelistEnabled()).to.be.true
       expect(await presale.isAddLiquidityEnabled()).to.be.true
     })
@@ -132,16 +131,6 @@ describe('Presale', () => {
       expect(await presale.isAddLiquidityEnabled()).to.be.true
       await presale.setIsAddLiquidityEnabled(false)
       expect(await presale.isAddLiquidityEnabled()).to.be.false
-    })
-  })
-
-  describe('#setRouter', () => {
-    it('sets router correctly', async () => {
-      await expect(presale.setRouter('0x0000000000000000000000000000000000000000')).to.be.revertedWith(
-        'Presale: invalid router'
-      )
-      await presale.setRouter('0x10ed43c718714eb63d5aa57b78b54704e256024e')
-      expect((await presale.router()).toLowerCase()).to.eq('0x10ed43c718714eb63d5aa57b78b54704e256024e')
     })
   })
 

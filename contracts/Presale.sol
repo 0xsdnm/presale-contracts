@@ -28,8 +28,7 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     uint256 public softCap;
     uint256 public hardCap;
     uint256 public tokensSold;
-    uint256 public tokensForLiquidity;
-    address public router;
+    address private router;
     bool public isFinalized;
     bool public isAddLiquidityEnabled;
     address public tokenContract;
@@ -163,11 +162,6 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
 
     function setIsAddLiquidityEnabled(bool _enabled) external onlyOwner {
         isAddLiquidityEnabled = _enabled;
-    }
-
-    function setRouter(address _router) external onlyOwner {
-        require(_router != address(0), 'Presale: invalid router');
-        router = _router;
     }
 
     /**
