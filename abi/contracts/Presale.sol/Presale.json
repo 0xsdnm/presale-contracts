@@ -52,9 +52,14 @@
         "type": "address"
       },
       {
-        "internalType": "bool",
-        "name": "_isAddLiquidityEnabled",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "_fee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_feeAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -178,6 +183,19 @@
   {
     "inputs": [],
     "name": "endDate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fee",
     "outputs": [
       {
         "internalType": "uint256",
@@ -340,6 +358,13 @@
   },
   {
     "inputs": [],
+    "name": "payFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "presalePrice",
     "outputs": [
       {
@@ -374,13 +399,6 @@
       }
     ],
     "name": "removeFromWhitelist",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

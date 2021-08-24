@@ -5,12 +5,11 @@ pragma solidity 0.8.7;
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
 import './libraries/TransferHelper.sol';
 import './libraries/Whitelistable.sol';
 import './interfaces/IDEXRouter.sol';
 
-contract Presale is Ownable, Whitelistable, ReentrancyGuard {
+contract Presale is Whitelistable, ReentrancyGuard {
     using SafeMath for uint256;
 
     event TokensPurchased(address indexed buyer, uint256 indexed amount);
@@ -32,6 +31,10 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     bool public isFinalized;
     bool public isAddLiquidityEnabled;
     address public tokenContract;
+
+    uint256 public fee;
+    address private feeAddress;
+
 
     mapping(address => uint256) public tokensPurchased;
 
@@ -56,7 +59,8 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         uint256 _presalePrice,
         uint256 _launchPrice,
         address _router,
-        bool _isAddLiquidityEnabled
+        uint256 _fee,
+        address _feeAddress
     ) {
         require(_softCap < _hardCap, 'Presale: softCap cannot be higher than hardCap');
         require(_startDate < _endDate, 'Presale: startDate cannot be after endDate');
@@ -74,7 +78,8 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
         presalePrice = _presalePrice;
         launchPrice = _launchPrice;
         router = _router;
-        isAddLiquidityEnabled = _isAddLiquidityEnabled;
+        fee = _fee;
+        feeAddress = _feeAddress;
     }
 
     /**
@@ -231,11 +236,31 @@ contract Presale is Ownable, Whitelistable, ReentrancyGuard {
     }
 
     /**
+     * @dev Pay launchpad fee.
+     *
+     */
+    function payFee() external nonReentrant {
+        require(feeAddress != address(0));
+        require(fee > 0, 'Presale: Invalid fee amount');
+
+        uint256 bal = address(this).balance;
+        if (fee > bal) {
+            fee = fee.sub(bal);
+            payable(feeAddress).transfer(bal);
+        } else {
+            payable(feeAddress).transfer(fee);
+            fee = 0;
+        }
+    }
+
+    /**
      * @dev Withdraw BNB that somehow ended up in the contract.
      *
      */
     function withdrawBnb() external onlyOwner {
-        payable(_msgSender()).transfer(address(this).balance);
+        uint256 bal = address(this).balance;
+        bal = bal > fee ? bal.sub(fee) : 0;
+        if (bal > 0) { payable(_msgSender()).transfer(bal); }
     }
 
     /**
